@@ -1,0 +1,182 @@
+﻿{% extends "base.html" %}
+
+{% block title %}Browse Items | Campus Lost & Found{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  
+  <!-- Breadcrumb & Header -->
+  <div class="row align-items-center mb-4">
+    <div class="col-md-7">
+      <h1 class="h3 fw-bold mb-1">Campus Lost & Found Directory</h1>
+      <p class="text-muted small mb-0">Browse through all lost and found listings reported across the campus</p>
+    </div>
+    <div class="col-md-5 text-md-end mt-3 mt-md-0">
+      <a href="{{ url_for('add_item') }}" class="btn btn-primary rounded-pill px-4 shadow-sm">
+        <i class="bi bi-plus-lg me-1"></i> Report New Item
+      </a>
+    </div>
+  </div>
+
+  <!-- Search & Filter Card -->
+  <div class="card border-0 shadow-sm rounded-4 mb-4 bg-white">
+    <div class="card-body p-4">
+      <form method="GET" action="{{ url_for('items') }}">
+        
+        <!-- Search Keyword -->
+        <div class="input-group mb-3">
+          <span class="input-group-text bg-light border-end-0"><i class="bi bi-search"></i></span>
+          <input type="text" name="q" class="form-control border-start-0" placeholder="Search by item name, description, brand, ID number, or location..." value="{{ search_q }}">
+          <button class="btn btn-primary px-4" type="submit">Search</button>
+        </div>
+
+        <!-- Filter Row -->
+        <div class="row g-2">
+          <!-- Type Filter -->
+          <div class="col-6 col-md-3">
+            <label class="form-label small fw-semibold text-muted mb-1">Item Type</label>
+            <select name="type" class="form-select form-select-sm" onchange="this.form.submit()">
+              <option value="all" {% if current_type == 'all' %}selected{% endif %}>All Types (Lost & Found)</option>
+              <option value="Found" {% if current_type == 'Found' %}selected{% endif %}>Found Only</option>
+              <option value="Lost" {% if current_type == 'Lost' %}selected{% endif %}>Lost Only</option>
+            </select>
+          </div>
+
+          <!-- Category Filter -->
+          <div class="col-6 col-md-3">
+            <label class="form-label small fw-semibold text-muted mb-1">Category</label>
+            <select name="category" class="form-select form-select-sm" onchange="this.form.submit()">
+              <option value="all" {% if current_category == 'all' %}selected{% endif %}>All Categories</option>
+              {% for cat in categories %}
+                <option value="{{ cat }}" {% if current_category == cat %}selected{% endif %}>{{ cat }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <!-- Location Filter -->
+          <div class="col-6 col-md-3">
+            <label class="form-label small fw-semibold text-muted mb-1">Campus Location</label>
+            <select name="location" class="form-select form-select-sm" onchange="this.form.submit()">
+              <option value="all" {% if current_location == 'all' %}selected{% endif %}>All Locations</option>
+              {% for loc in locations %}
+                <option value="{{ loc }}" {% if current_location == loc %}selected{% endif %}>{{ loc }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <!-- Status & Reset -->
+          <div class="col-6 col-md-3">
+            <label class="form-label small fw-semibold text-muted mb-1">Status</label>
+            <div class="d-flex gap-2">
+              <select name="status" class="form-select form-select-sm" onchange="this.form.submit()">
+                <option value="all" {% if current_status == 'all' %}selected{% endif %}>All Status</option>
+                <option value="Available" {% if current_status == 'Available' %}selected{% endif %}>Available / Open</option>
+                <option value="Returned" {% if current_status == 'Returned' %}selected{% endif %}>Returned / Resolved</option>
+              </select>
+              <a href="{{ url_for('items') }}" class="btn btn-sm btn-outline-secondary" title="Clear Filters">
+                <i class="bi bi-arrow-counterclockwise"></i>
+              </a>
+            </div>
+          </div>
+        </div>
+
+      </form>
+    </div>
+  </div>
+
+  <!-- Results Count Bar -->
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <div class="text-muted small">
+      Showing <strong class="text-dark">{{ total_count }}</strong> items
+      {% if search_q %} matching "<span class="text-primary">{{ search_q }}</span>"{% endif %}
+      {% if current_type != 'all' %}&bull; Type: <strong>{{ current_type }}</strong>{% endif %}
+      {% if current_category != 'all' %}&bull; Category: <strong>{{ current_category }}</strong>{% endif %}
+    </div>
+  </div>
+
+  <!-- Items Grid -->
+  <div class="row g-4">
+    {% if items %}
+      {% for item in items %}
+        <div class="col-sm-6 col-lg-4 col-xl-3">
+          <div class="card h-100 item-card">
+            
+            <div class="item-card-img-container">
+              <span class="item-type-badge {% if item.type == 'Lost' %}badge-lost{% else %}badge-found{% endif %}">
+                {{ item.type }}
+              </span>
+
+              {% if item.video_path %}
+                <span class="media-tag-video"><i class="bi bi-camera-video me-1"></i>Video</span>
+              {% endif %}
+
+              {% if item.image_path %}
+                <img src="{{ url_for('static', filename=item.image_path) }}" alt="{{ item.title }}">
+              {% else %}
+                <div class="text-center text-muted">
+                  <i class="bi bi-image fs-1 d-block mb-1"></i>
+                  <span class="small">No Photo</span>
+                </div>
+              {% endif %}
+            </div>
+
+            <div class="card-body d-flex flex-column">
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <span class="badge bg-light text-secondary border small text-truncate" style="max-width: 140px;">
+                  {{ item.category }}
+                </span>
+                <span class="badge {% if item.status == 'Available' %}bg-success-subtle text-success{% else %}bg-secondary{% endif %}">
+                  {{ item.status }}
+                </span>
+              </div>
+
+              <h5 class="card-title fw-bold text-truncate mb-1" title="{{ item.title }}">
+                {{ item.title }}
+              </h5>
+
+              <p class="card-text text-muted small text-truncate-2 mb-2">
+                <i class="bi bi-geo-alt me-1 text-danger"></i>{{ item.location }}
+              </p>
+
+              <!-- Dynamic chips (if any) -->
+              {% if item.custom_fields %}
+                <div class="mb-3 d-flex flex-wrap gap-1">
+                  {% if item.custom_fields.brand %}
+                    <span class="attr-chip"><i class="bi bi-tag"></i> {{ item.custom_fields.brand }}</span>
+                  {% endif %}
+                  {% if item.custom_fields.color %}
+                    <span class="attr-chip"><i class="bi bi-palette"></i> {{ item.custom_fields.color }}</span>
+                  {% endif %}
+                  {% if item.custom_fields.id_number %}
+                    <span class="attr-chip text-danger"><i class="bi bi-card-text"></i> {{ item.custom_fields.id_number }}</span>
+                  {% endif %}
+                </div>
+              {% endif %}
+
+              <div class="mt-auto d-flex justify-content-between align-items-center pt-2 border-top">
+                <small class="text-muted"><i class="bi bi-calendar3 me-1"></i>{{ item.date_observed }}</small>
+                <a href="{{ url_for('item_detail', item_id=item._id) }}" class="btn btn-sm btn-primary rounded-pill px-3">
+                  View <i class="bi bi-chevron-right ms-1"></i>
+                </a>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    {% else %}
+      <div class="col-12 py-5 text-center">
+        <div class="p-5 bg-white rounded-4 border shadow-sm mx-auto" style="max-width: 500px;">
+          <i class="bi bi-search fs-1 text-muted d-block mb-3"></i>
+          <h4 class="fw-bold">No Items Found</h4>
+          <p class="text-muted small mb-4">No lost or found items matched your search filters. Try clearing your filters or check back later.</p>
+          <a href="{{ url_for('items') }}" class="btn btn-outline-primary rounded-pill px-4">
+            Reset Filters
+          </a>
+        </div>
+      </div>
+    {% endif %}
+  </div>
+
+</div>
+{% endblock %}

@@ -1,0 +1,73 @@
+﻿{% extends "base.html" %}
+
+{% block title %}Login | Campus Lost & Found{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-md-6 col-lg-5">
+      <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-3">
+        <div class="card-header bg-dark text-white p-4 text-center">
+          <div class="fs-1 mb-2"><i class="bi bi-shield-lock-fill text-primary"></i></div>
+          <h3 class="fw-bold mb-1">User Sign In</h3>
+          <p class="mb-0 small text-white-50">Access your reported items, claims, and admin tools</p>
+        </div>
+        <div class="card-body p-4 p-md-5">
+          <form method="POST" action="{{ url_for('login') }}{% if request.args.get('next') %}?next={{ request.args.get('next') }}{% endif %}">
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Email or Username</label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-person-badge"></i></span>
+                <input type="text" name="login_id" id="loginIdInput" class="form-control" placeholder="Enter username or email" required autofocus>
+              </div>
+            </div>
+
+            <div class="mb-4">
+              <label class="form-label fw-semibold">Password</label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-key"></i></span>
+                <input type="password" name="password" id="passwordInput" class="form-control" placeholder="Enter your password" required>
+              </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100 py-2 rounded-pill fw-semibold shadow-sm">
+              <i class="bi bi-box-arrow-in-right me-1"></i> Sign In
+            </button>
+          </form>
+
+          <div class="text-center mt-4 pt-3 border-top">
+            <span class="text-muted small">New to the portal? </span>
+            <a href="{{ url_for('register') }}" class="fw-semibold text-primary">Create an account</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Admin Credentials Card -->
+      <div class="card border-0 bg-light shadow-sm rounded-4 p-3 text-center">
+        <div class="d-flex align-items-center justify-content-between">
+          <div class="text-start">
+            <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-2 py-1 small fw-bold mb-1">
+              <i class="bi bi-shield-lock me-1"></i> Default Admin
+            </span>
+            <div class="small fw-semibold text-dark">admin@campus.edu</div>
+            <div class="small text-muted">Password: <code>admin123</code></div>
+          </div>
+          <button type="button" class="btn btn-outline-danger btn-sm rounded-pill px-3" onclick="fillAdmin()">
+            Autofill Admin
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  function fillAdmin() {
+    document.getElementById('loginIdInput').value = 'admin@campus.edu';
+    document.getElementById('passwordInput').value = 'admin123';
+  }
+</script>
+{% endblock %}

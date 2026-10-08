@@ -1,0 +1,213 @@
+﻿{% extends "base.html" %}
+
+{% block title %}Edit Post: {{ item.title }} | Campus Lost & Found{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-9">
+      
+      <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4">
+        <div class="card-header bg-dark text-white p-4 d-flex justify-content-between align-items-center">
+          <div>
+            <h3 class="fw-bold mb-1"><i class="bi bi-pencil-square me-2 text-warning"></i>Edit Item Listing</h3>
+            <p class="mb-0 small text-white-50">Update post details, status, or replace photo & video</p>
+          </div>
+          <span class="badge bg-warning text-dark px-3 py-2 rounded-pill fw-semibold">
+            Status: {{ item.status }}
+          </span>
+        </div>
+
+        <div class="card-body p-4 p-md-5">
+          <form method="POST" action="{{ url_for('edit_item', item_id=item._id) }}" enctype="multipart/form-data">
+            
+            <!-- Item Type Selection -->
+            <div class="mb-4">
+              <label class="form-label fw-bold d-block mb-2">Report Type</label>
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <input type="radio" class="btn-check" name="type" id="typeFound" value="Found" {% if item.type == 'Found' %}checked{% endif %}>
+                  <label class="btn btn-outline-success w-100 p-3 text-start rounded-3" for="typeFound">
+                    <div class="d-flex align-items-center">
+                      <i class="bi bi-check-circle-fill fs-3 me-3 text-success"></i>
+                      <div>
+                        <div class="fw-bold fs-6">FOUND Item</div>
+                        <div class="small text-muted">Item was picked up on campus</div>
+                      </div>
+                    </div>
+                  </label>
+                </div>
+
+                <div class="col-md-6">
+                  <input type="radio" class="btn-check" name="type" id="typeLost" value="Lost" {% if item.type == 'Lost' %}checked{% endif %}>
+                  <label class="btn btn-outline-danger w-100 p-3 text-start rounded-3" for="typeLost">
+                    <div class="d-flex align-items-center">
+                      <i class="bi bi-exclamation-triangle-fill fs-3 me-3 text-danger"></i>
+                      <div>
+                        <div class="fw-bold fs-6">LOST Item</div>
+                        <div class="small text-muted">Item was misplaced by owner</div>
+                      </div>
+                    </div>
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <!-- Title & Category -->
+            <div class="row g-3 mb-3">
+              <div class="col-md-8">
+                <label class="form-label fw-semibold">Item Name / Title *</label>
+                <input type="text" name="title" class="form-control" value="{{ item.title }}" required>
+              </div>
+
+              <div class="col-md-4">
+                <label class="form-label fw-semibold">Category *</label>
+                <select name="category" id="categorySelect" class="form-select" required>
+                  {% for cat in categories %}
+                    <option value="{{ cat }}" {% if item.category == cat %}selected{% endif %}>{{ cat }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+            </div>
+
+            <!-- Status Selector -->
+            <div class="row g-3 mb-3">
+              <div class="col-md-6">
+                <label class="form-label fw-semibold">Listing Status *</label>
+                <select name="status" class="form-select">
+                  <option value="Available" {% if item.status == 'Available' %}selected{% endif %}>Available (Open / Unresolved)</option>
+                  <option value="Claimed" {% if item.status == 'Claimed' %}selected{% endif %}>Claimed (In Verification)</option>
+                  <option value="Returned" {% if item.status == 'Returned' %}selected{% endif %}>Returned (Resolved / Closed)</option>
+                </select>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label fw-semibold">Date Observed</label>
+                <input type="date" name="date_observed" class="form-control" value="{{ item.date_observed }}">
+              </div>
+            </div>
+
+            <!-- Flexible Attributes -->
+            <div class="p-3 bg-light rounded-3 border mb-3">
+              <h6 class="fw-bold text-secondary mb-3 small text-uppercase">
+                <i class="bi bi-sliders me-1"></i> Specific Identifiers (NoSQL Attributes)
+              </h6>
+              
+              <div class="row g-3">
+                <div class="col-md-6" id="brandGroup">
+                  <label class="form-label small fw-semibold text-muted">Brand / Model</label>
+                  <input type="text" name="brand" class="form-control form-control-sm" value="{{ item.custom_fields.get('brand', '') if item.custom_fields else '' }}">
+                </div>
+
+                <div class="col-md-6">
+                  <label class="form-label small fw-semibold text-muted">Color / Pattern</label>
+                  <input type="text" name="color" class="form-control form-control-sm" value="{{ item.custom_fields.get('color', '') if item.custom_fields else '' }}">
+                </div>
+
+                <div class="col-md-6 {% if 'College ID' not in item.category and 'Cards' not in item.category %}d-none{% endif %}" id="idNumberGroup">
+                  <label class="form-label small fw-semibold text-danger">College ID / Registration Number</label>
+                  <input type="text" name="id_number" class="form-control form-control-sm" value="{{ item.custom_fields.get('id_number', '') if item.custom_fields else '' }}">
+                </div>
+
+                <div class="col-md-6 {% if 'Keys' not in item.category %}d-none{% endif %}" id="keyTypeGroup">
+                  <label class="form-label small fw-semibold text-muted">Key Specification</label>
+                  <input type="text" name="key_type" class="form-control form-control-sm" value="{{ item.custom_fields.get('key_type', '') if item.custom_fields else '' }}">
+                </div>
+              </div>
+            </div>
+
+            <!-- Location -->
+            <div class="row g-3 mb-3">
+              <div class="col-md-12">
+                <label class="form-label fw-semibold">Campus Location *</label>
+                <input type="text" name="location" list="locationOptions" class="form-control" value="{{ item.location }}" required>
+                <datalist id="locationOptions">
+                  {% for loc in locations %}
+                    <option value="{{ loc }}">
+                  {% endfor %}
+                </datalist>
+              </div>
+            </div>
+
+            <!-- Description -->
+            <div class="mb-4">
+              <label class="form-label fw-semibold">Detailed Description</label>
+              <textarea name="description" rows="3" class="form-control">{{ item.description }}</textarea>
+            </div>
+
+            <!-- Current & New Media Section -->
+            <div class="card border-secondary-subtle bg-light rounded-3 p-3 mb-4">
+              <h5 class="fw-bold mb-3 text-dark">
+                <i class="bi bi-images me-2"></i>Media Attachments & Replacement
+              </h5>
+
+              <div class="row g-4">
+                <!-- Image Section -->
+                <div class="col-md-6">
+                  <label class="form-label fw-semibold small">Photo Attachment</label>
+                  {% if item.image_path %}
+                    <div class="p-2 border rounded-3 bg-white mb-2 text-center">
+                      <img src="{{ url_for('static', filename=item.image_path) }}" alt="Current Photo" style="max-height: 120px;" class="rounded">
+                      <div class="form-check mt-2 text-start">
+                        <input class="form-check-input" type="checkbox" name="remove_image" value="yes" id="removeImgCheck">
+                        <label class="form-check-label text-danger small" for="removeImgCheck">
+                          Delete existing photo
+                        </label>
+                      </div>
+                    </div>
+                  {% endif %}
+
+                  <label class="form-label small text-muted">Upload New / Replacement Photo</label>
+                  <input type="file" name="image" id="imageInput" class="form-control form-control-sm" accept="image/*">
+                  <div id="imagePreviewContainer" class="d-none mt-2 text-center">
+                    <img id="imagePreview" src="" alt="New Preview" class="preview-thumbnail">
+                  </div>
+                </div>
+
+                <!-- Video Section -->
+                <div class="col-md-6">
+                  <label class="form-label fw-semibold small">Video Attachment</label>
+                  {% if item.video_path %}
+                    <div class="p-2 border rounded-3 bg-white mb-2 text-center">
+                      <video src="{{ url_for('static', filename=item.video_path) }}" style="max-height: 120px;" controls class="rounded"></video>
+                      <div class="form-check mt-2 text-start">
+                        <input class="form-check-input" type="checkbox" name="remove_video" value="yes" id="removeVidCheck">
+                        <label class="form-check-label text-danger small" for="removeVidCheck">
+                          Delete existing video
+                        </label>
+                      </div>
+                    </div>
+                  {% endif %}
+
+                  <label class="form-label small text-muted">Upload New / Replacement Video</label>
+                  <input type="file" name="video" id="videoInput" class="form-control form-control-sm" accept="video/mp4,video/webm">
+                  <div id="videoPreviewContainer" class="d-none mt-2 text-center">
+                    <video id="videoPreview" class="preview-thumbnail" controls></video>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Contact Preference -->
+            <div class="mb-4">
+              <label class="form-label fw-semibold">Contact / Handover Instructions</label>
+              <input type="text" name="contact_info" class="form-control" value="{{ item.contact_info }}">
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="d-flex justify-content-between align-items-center pt-3 border-top">
+              <a href="{{ url_for('item_detail', item_id=item._id) }}" class="btn btn-outline-secondary rounded-pill px-4">
+                Cancel
+              </a>
+              <button type="submit" class="btn btn-warning rounded-pill px-5 fw-bold shadow-sm">
+                <i class="bi bi-check-lg me-1"></i> Save Changes
+              </button>
+            </div>
+
+          </form>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+{% endblock %}

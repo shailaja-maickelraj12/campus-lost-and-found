@@ -1,0 +1,193 @@
+﻿:root {
+  --primary-color: #2563eb;
+  --primary-hover: #1d4ed8;
+  --secondary-color: #475569;
+  --accent-lost: #ef4444;
+  --accent-found: #0d9488;
+  --bg-subtle: #f8fafc;
+  --card-border: #e2e8f0;
+}
+
+body {
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  background-color: var(--bg-subtle);
+  color: #1e293b;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+main {
+  flex: 1;
+}
+
+/* Navbar */
+.navbar-brand {
+  font-weight: 700;
+  letter-spacing: -0.5px;
+}
+
+.brand-icon {
+  background: linear-gradient(135deg, #2563eb, #0d9488);
+  color: white;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+}
+
+/* Hero Section */
+.hero-section {
+  background: radial-gradient(circle at 10% 20%, rgb(238, 246, 255) 0%, rgb(241, 245, 249) 90%);
+  border-bottom: 1px solid var(--card-border);
+}
+
+/* Card designs */
+.item-card {
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+  overflow: hidden;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  background-color: #ffffff;
+}
+
+.item-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 24px -10px rgba(0, 0, 0, 0.12);
+}
+
+.item-card-img-container {
+  height: 200px;
+  width: 100%;
+  position: relative;
+  background-color: #f1f5f9;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.item-card-img-container img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.item-card:hover .item-card-img-container img {
+  transform: scale(1.05);
+}
+
+.item-type-badge {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  font-weight: 600;
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+}
+
+.badge-lost {
+  background-color: var(--accent-lost);
+  color: white;
+}
+
+.badge-found {
+  background-color: var(--accent-found);
+  color: white;
+}
+
+.media-tag-video {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background-color: rgba(15, 23, 42, 0.75);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  backdrop-filter: blur(4px);
+}
+
+/* Detail Page Media View */
+.detail-media-box {
+  border-radius: 16px;
+  overflow: hidden;
+  background-color: #0f172a;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.2);
+}
+
+.detail-main-img {
+  width: 100%;
+  max-height: 480px;
+  object-fit: contain;
+  background-color: #0f172a;
+}
+
+.detail-video-player {
+  width: 100%;
+  max-height: 440px;
+  border-radius: 12px;
+  background-color: #000;
+}
+
+/* Category Quick Filter Pills */
+.category-pill {
+  border: 1px solid #cbd5e1;
+  border-radius: 30px;
+  padding: 8px 16px;
+  font-size: 0.88rem;
+  color: #334155;
+  text-decoration: none;
+  background-color: white;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.category-pill:hover, .category-pill.active {
+  background-color: var(--primary-color);
+  color: white;
+  border-color: var(--primary-color);
+}
+
+/* Dynamic attribute tag */
+.attr-chip {
+  background-color: #f1f5f9;
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-size: 0.8rem;
+  color: #475569;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+/* File Upload Drag Drop Box */
+.upload-dropzone {
+  border: 2px dashed #cbd5e1;
+  border-radius: 12px;
+  padding: 24px;
+  text-align: center;
+  background-color: #f8fafc;
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+
+.upload-dropzone:hover {
+  border-color: var(--primary-color);
+  background-color: #f0f7ff;
+}
+
+.preview-thumbnail {
+  max-height: 120px;
+  border-radius: 8px;
+  margin-top: 10px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}

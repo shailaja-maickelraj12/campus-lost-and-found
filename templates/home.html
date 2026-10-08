@@ -1,0 +1,192 @@
+﻿{% extends "base.html" %}
+
+{% block title %}Home | Campus Lost & Found Media Portal{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section py-5">
+  <div class="container text-center py-4">
+    <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-2 rounded-pill fw-semibold mb-3">
+      <i class="bi bi-shield-check me-1"></i> Official Campus Retrieval Platform
+    </span>
+    <h1 class="display-5 fw-bold text-dark mb-3">Lost Something on Campus? <br class="d-none d-md-block">Or Found Someone's Valuables?</h1>
+    <p class="lead text-secondary mx-auto mb-4" style="max-width: 680px;">
+      Report lost or found items with photos and short videos. Browse real-time listings, locate your lost belongings, and submit verified recovery claims.
+    </p>
+
+    <!-- Search Form -->
+    <div class="row justify-content-center">
+      <div class="col-lg-8 col-md-10">
+        <form action="{{ url_for('items') }}" method="GET" class="card p-2 shadow-sm border-0 rounded-pill">
+          <div class="input-group">
+            <span class="input-group-text bg-transparent border-0 ps-3 text-muted">
+              <i class="bi bi-search fs-5"></i>
+            </span>
+            <input type="text" name="q" class="form-control border-0 shadow-none" placeholder="Search by item name, calculator, keys, wallet, lab record, block...">
+            <button class="btn btn-primary rounded-pill px-4" type="submit">
+              Search
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="row g-3 justify-content-center mt-4">
+      <div class="col-6 col-md-3">
+        <div class="bg-white p-3 rounded-4 border shadow-sm">
+          <div class="fs-4 fw-bold text-primary">{{ stats.total }}</div>
+          <div class="text-muted small">Total Reports</div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="bg-white p-3 rounded-4 border shadow-sm">
+          <div class="fs-4 fw-bold text-danger">{{ stats.lost }}</div>
+          <div class="text-muted small">Lost Items</div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="bg-white p-3 rounded-4 border shadow-sm">
+          <div class="fs-4 fw-bold text-success">{{ stats.found }}</div>
+          <div class="text-muted small">Found Items</div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="bg-white p-3 rounded-4 border shadow-sm">
+          <div class="fs-4 fw-bold text-info">{{ stats.returned }}</div>
+          <div class="text-muted small">Reunited</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Recent Listings Section -->
+<div class="container py-5">
+  
+  <!-- Recent Found Items -->
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h2 class="h4 fw-bold mb-1"><i class="bi bi-patch-check-fill text-teal text-success me-2"></i>Recently Found on Campus</h2>
+      <p class="text-muted small mb-0">Check if your lost belongings have been picked up and handed in.</p>
+    </div>
+    <a href="{{ url_for('items', type='Found') }}" class="btn btn-outline-success btn-sm rounded-pill px-3">
+      View All Found <i class="bi bi-arrow-right ms-1"></i>
+    </a>
+  </div>
+
+  <div class="row g-4 mb-5">
+    {% if recent_found %}
+      {% for item in recent_found %}
+        <div class="col-md-6 col-lg-3">
+          <div class="card h-100 item-card">
+            <div class="item-card-img-container">
+              <span class="item-type-badge badge-found">FOUND</span>
+              {% if item.video_path %}
+                <span class="media-tag-video"><i class="bi bi-camera-video me-1"></i>Video</span>
+              {% endif %}
+              {% if item.image_path %}
+                <img src="{{ url_for('static', filename=item.image_path) }}" alt="{{ item.title }}">
+              {% else %}
+                <div class="text-center text-muted">
+                  <i class="bi bi-image fs-1 d-block mb-1"></i>
+                  <span class="small">No Photo Provided</span>
+                </div>
+              {% endif %}
+            </div>
+            <div class="card-body d-flex flex-column">
+              <div class="d-flex justify-content-between align-items-center mb-1">
+                <span class="badge bg-light text-secondary border small">{{ item.category }}</span>
+                <span class="badge {% if item.status == 'Available' %}bg-success-subtle text-success{% else %}bg-secondary{% endif %}">
+                  {{ item.status }}
+                </span>
+              </div>
+              <h5 class="card-title fw-bold text-truncate mb-1" title="{{ item.title }}">{{ item.title }}</h5>
+              <p class="card-text text-muted small text-truncate-2 mb-3">
+                <i class="bi bi-geo-alt me-1 text-danger"></i>{{ item.location }}
+              </p>
+              
+              <div class="mt-auto d-flex justify-content-between align-items-center pt-2 border-top">
+                <small class="text-muted"><i class="bi bi-calendar3 me-1"></i>{{ item.date_observed }}</small>
+                <a href="{{ url_for('item_detail', item_id=item._id) }}" class="btn btn-sm btn-primary rounded-pill px-3">
+                  Details
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    {% else %}
+      <div class="col-12">
+        <div class="p-4 bg-white rounded-3 border text-center text-muted">
+          <i class="bi bi-inbox fs-2 d-block mb-2"></i>
+          No found items reported yet. <a href="{{ url_for('add_item') }}" class="text-primary fw-semibold">Report a found item!</a>
+        </div>
+      </div>
+    {% endif %}
+  </div>
+
+  <!-- Recent Lost Items -->
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h2 class="h4 fw-bold mb-1"><i class="bi bi-exclamation-diamond-fill text-danger me-2"></i>Recently Reported Lost</h2>
+      <p class="text-muted small mb-0">Help your peers by checking if you have seen any of these items.</p>
+    </div>
+    <a href="{{ url_for('items', type='Lost') }}" class="btn btn-outline-danger btn-sm rounded-pill px-3">
+      View All Lost <i class="bi bi-arrow-right ms-1"></i>
+    </a>
+  </div>
+
+  <div class="row g-4">
+    {% if recent_lost %}
+      {% for item in recent_lost %}
+        <div class="col-md-6 col-lg-3">
+          <div class="card h-100 item-card">
+            <div class="item-card-img-container">
+              <span class="item-type-badge badge-lost">LOST</span>
+              {% if item.video_path %}
+                <span class="media-tag-video"><i class="bi bi-camera-video me-1"></i>Video</span>
+              {% endif %}
+              {% if item.image_path %}
+                <img src="{{ url_for('static', filename=item.image_path) }}" alt="{{ item.title }}">
+              {% else %}
+                <div class="text-center text-muted">
+                  <i class="bi bi-image fs-1 d-block mb-1"></i>
+                  <span class="small">No Photo Provided</span>
+                </div>
+              {% endif %}
+            </div>
+            <div class="card-body d-flex flex-column">
+              <div class="d-flex justify-content-between align-items-center mb-1">
+                <span class="badge bg-light text-secondary border small">{{ item.category }}</span>
+                <span class="badge {% if item.status == 'Available' %}bg-warning-subtle text-warning-emphasis{% else %}bg-secondary{% endif %}">
+                  {{ item.status }}
+                </span>
+              </div>
+              <h5 class="card-title fw-bold text-truncate mb-1" title="{{ item.title }}">{{ item.title }}</h5>
+              <p class="card-text text-muted small text-truncate-2 mb-3">
+                <i class="bi bi-geo-alt me-1 text-danger"></i>{{ item.location }}
+              </p>
+              
+              <div class="mt-auto d-flex justify-content-between align-items-center pt-2 border-top">
+                <small class="text-muted"><i class="bi bi-calendar3 me-1"></i>{{ item.date_observed }}</small>
+                <a href="{{ url_for('item_detail', item_id=item._id) }}" class="btn btn-sm btn-outline-dark rounded-pill px-3">
+                  Details
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    {% else %}
+      <div class="col-12">
+        <div class="p-4 bg-white rounded-3 border text-center text-muted">
+          <i class="bi bi-inbox fs-2 d-block mb-2"></i>
+          No lost items reported yet. <a href="{{ url_for('add_item') }}" class="text-danger fw-semibold">Report a lost item!</a>
+        </div>
+      </div>
+    {% endif %}
+  </div>
+
+</div>
+{% endblock %}

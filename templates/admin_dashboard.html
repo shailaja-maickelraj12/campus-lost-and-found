@@ -1,0 +1,389 @@
+﻿{% extends "base.html" %}
+
+{% block title %}Admin Dashboard | Campus Lost & Found{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-lg-5 py-4">
+  
+  <!-- Header -->
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-3 py-1 fw-bold mb-2">
+        <i class="bi bi-shield-lock-fill me-1"></i> Administrator Portal
+      </span>
+      <h1 class="h3 fw-bold mb-0">Campus Lost & Found Operations Console</h1>
+    </div>
+    <div class="text-muted small">
+      Live MongoDB Aggregations &bull; PyMongo Engine
+    </div>
+  </div>
+
+  <!-- Key Metrics Row -->
+  <div class="row g-3 mb-4">
+    <div class="col-6 col-md-3 col-xl">
+      <div class="card border-0 shadow-sm rounded-4 p-3 bg-white">
+        <div class="d-flex align-items-center">
+          <div class="rounded-3 bg-primary-subtle text-primary p-3 me-3">
+            <i class="bi bi-people-fill fs-4"></i>
+          </div>
+          <div>
+            <div class="text-muted small">Registered Users</div>
+            <div class="fs-4 fw-bold text-dark">{{ stats.total_users }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-6 col-md-3 col-xl">
+      <div class="card border-0 shadow-sm rounded-4 p-3 bg-white">
+        <div class="d-flex align-items-center">
+          <div class="rounded-3 bg-secondary-subtle text-secondary p-3 me-3">
+            <i class="bi bi-collection-fill fs-4"></i>
+          </div>
+          <div>
+            <div class="text-muted small">Total Reports</div>
+            <div class="fs-4 fw-bold text-dark">{{ stats.total_items }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-6 col-md-3 col-xl">
+      <div class="card border-0 shadow-sm rounded-4 p-3 bg-white">
+        <div class="d-flex align-items-center">
+          <div class="rounded-3 bg-danger-subtle text-danger p-3 me-3">
+            <i class="bi bi-exclamation-octagon-fill fs-4"></i>
+          </div>
+          <div>
+            <div class="text-muted small">Lost Items</div>
+            <div class="fs-4 fw-bold text-danger">{{ stats.total_lost }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-6 col-md-3 col-xl">
+      <div class="card border-0 shadow-sm rounded-4 p-3 bg-white">
+        <div class="d-flex align-items-center">
+          <div class="rounded-3 bg-success-subtle text-success p-3 me-3">
+            <i class="bi bi-check-circle-fill fs-4"></i>
+          </div>
+          <div>
+            <div class="text-muted small">Found Items</div>
+            <div class="fs-4 fw-bold text-success">{{ stats.total_found }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-6 col-md-3 col-xl">
+      <div class="card border-0 shadow-sm rounded-4 p-3 bg-white">
+        <div class="d-flex align-items-center">
+          <div class="rounded-3 bg-info-subtle text-info p-3 me-3">
+            <i class="bi bi-arrow-repeat fs-4"></i>
+          </div>
+          <div>
+            <div class="text-muted small">Reunited Items</div>
+            <div class="fs-4 fw-bold text-info">{{ stats.total_returned }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-6 col-md-3 col-xl">
+      <div class="card border-0 shadow-sm rounded-4 p-3 bg-white">
+        <div class="d-flex align-items-center">
+          <div class="rounded-3 bg-warning-subtle text-warning-emphasis p-3 me-3">
+            <i class="bi bi-file-earmark-check-fill fs-4"></i>
+          </div>
+          <div>
+            <div class="text-muted small">Claims Filed</div>
+            <div class="fs-4 fw-bold text-dark">{{ stats.total_claims }}</div>
+            <small class="text-danger">({{ stats.pending_claims }} pending)</small>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MongoDB Aggregations Showcase Row -->
+  <div class="row g-4 mb-4">
+    <!-- Category Distribution Aggregation ($group) -->
+    <div class="col-lg-6">
+      <div class="card border-0 shadow-sm rounded-4 p-4 h-100 bg-white">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h5 class="fw-bold mb-0 text-dark">
+            <i class="bi bi-pie-chart-fill text-primary me-2"></i>Items by Category (Aggregation)
+          </h5>
+          <span class="badge bg-light text-secondary border small">PyMongo $group</span>
+        </div>
+
+        {% if category_breakdown %}
+          <div class="table-responsive">
+            <table class="table table-sm align-middle mb-0">
+              <thead class="table-light small">
+                <tr>
+                  <th>Category</th>
+                  <th class="text-end">Item Count</th>
+                  <th style="width: 35%;">Relative Ratio</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for cat in category_breakdown %}
+                  <tr>
+                    <td class="fw-semibold">{{ cat._id or 'Uncategorized' }}</td>
+                    <td class="text-end fw-bold">{{ cat.count }}</td>
+                    <td>
+                      {% set pct = (cat.count / stats.total_items * 100)|round|int if stats.total_items > 0 else 0 %}
+                      <div class="progress" style="height: 8px;">
+                        <div class="progress-bar bg-primary" role="progressbar" style="width: {{ pct }}%"></div>
+                      </div>
+                    </td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        {% else %}
+          <div class="p-4 text-center text-muted small">No items reported yet for aggregation.</div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Campus Hotspots Aggregation ($group, $sort, $limit) -->
+    <div class="col-lg-6">
+      <div class="card border-0 shadow-sm rounded-4 p-4 h-100 bg-white">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h5 class="fw-bold mb-0 text-dark">
+            <i class="bi bi-geo-alt-fill text-danger me-2"></i>Campus Hotspots (Location Aggregation)
+          </h5>
+          <span class="badge bg-light text-secondary border small">Top Hotspots</span>
+        </div>
+
+        {% if location_breakdown %}
+          <div class="table-responsive">
+            <table class="table table-sm align-middle mb-0">
+              <thead class="table-light small">
+                <tr>
+                  <th>Location</th>
+                  <th class="text-end">Reports Count</th>
+                  <th style="width: 35%;">Activity</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for loc in location_breakdown %}
+                  <tr>
+                    <td class="fw-semibold text-truncate" style="max-width: 220px;">{{ loc._id }}</td>
+                    <td class="text-end fw-bold">{{ loc.count }}</td>
+                    <td>
+                      {% set pct = (loc.count / stats.total_items * 100)|round|int if stats.total_items > 0 else 0 %}
+                      <div class="progress" style="height: 8px;">
+                        <div class="progress-bar bg-danger" role="progressbar" style="width: {{ pct }}%"></div>
+                      </div>
+                    </td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        {% else %}
+          <div class="p-4 text-center text-muted small">No location data reported yet.</div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Management Tables Tabs -->
+  <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white">
+    <div class="card-header bg-white p-3 border-bottom">
+      <ul class="nav nav-tabs card-header-tabs" id="adminTabs" role="tablist">
+        <li class="nav-item">
+          <button class="nav-link active fw-semibold" id="items-tab" data-bs-toggle="tab" data-bs-target="#itemsTab">
+            <i class="bi bi-boxes me-1"></i> All Items Directory ({{ all_items|length }})
+          </button>
+        </li>
+        <li class="nav-item">
+          <button class="nav-link fw-semibold" id="users-tab" data-bs-toggle="tab" data-bs-target="#usersTab">
+            <i class="bi bi-people me-1"></i> User Accounts & Roles ({{ all_users|length }})
+          </button>
+        </li>
+        <li class="nav-item">
+          <button class="nav-link fw-semibold" id="claims-tab" data-bs-toggle="tab" data-bs-target="#claimsTabPane">
+            <i class="bi bi-shield-check me-1"></i> All Claims ({{ all_claims|length }})
+          </button>
+        </li>
+      </ul>
+    </div>
+
+    <div class="card-body p-0">
+      <div class="tab-content">
+        
+        <!-- Tab 1: All Items Moderation -->
+        <div class="tab-pane fade show active p-3" id="itemsTab">
+          <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+              <thead class="table-light small">
+                <tr>
+                  <th>Title & Category</th>
+                  <th>Type</th>
+                  <th>Location</th>
+                  <th>Poster</th>
+                  <th>Status</th>
+                  <th>Reported</th>
+                  <th class="text-end">Admin Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for it in all_items %}
+                  <tr>
+                    <td>
+                      <a href="{{ url_for('item_detail', item_id=it._id) }}" class="fw-bold text-dark text-decoration-none">
+                        {{ it.title }}
+                      </a>
+                      <div class="text-muted small">{{ it.category }}</div>
+                    </td>
+                    <td>
+                      <span class="badge {% if it.type == 'Lost' %}badge-lost{% else %}badge-found{% endif %}">
+                        {{ it.type }}
+                      </span>
+                    </td>
+                    <td class="small">{{ it.location }}</td>
+                    <td class="small">{{ it.uploader_name }} <span class="text-muted">({{ it.uploader_email }})</span></td>
+                    <td>
+                      <span class="badge {% if it.status == 'Available' %}bg-success-subtle text-success{% elif it.status == 'Returned' %}bg-secondary{% else %}bg-warning text-dark{% endif %}">
+                        {{ it.status }}
+                      </span>
+                    </td>
+                    <td class="small text-muted">{{ it.created_at|datetime_format }}</td>
+                    <td class="text-end">
+                      <div class="d-inline-flex gap-1">
+                        <a href="{{ url_for('edit_item', item_id=it._id) }}" class="btn btn-sm btn-outline-warning" title="Edit Post">
+                          <i class="bi bi-pencil"></i>
+                        </a>
+                        <form method="POST" action="{{ url_for('delete_item', item_id=it._id) }}" class="d-inline" onsubmit="return confirm('ADMIN ACTION: Permanently remove this post and all media?');">
+                          <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete Post">
+                            <i class="bi bi-trash"></i>
+                          </button>
+                        </form>
+                      </div>
+                    </td>
+                  </tr>
+                {% else %}
+                  <tr><td colspan="7" class="text-center py-4 text-muted">No items in the database.</td></tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Tab 2: User Accounts -->
+        <div class="tab-pane fade p-3" id="usersTab">
+          <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+              <thead class="table-light small">
+                <tr>
+                  <th>Username</th>
+                  <th>Email</th>
+                  <th>Department</th>
+                  <th>Phone</th>
+                  <th>Current Role</th>
+                  <th class="text-end">Change Role</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for u in all_users %}
+                  <tr>
+                    <td class="fw-bold text-dark"><i class="bi bi-person me-1"></i>{{ u.username }}</td>
+                    <td>{{ u.email }}</td>
+                    <td class="small text-muted">{{ u.department or 'N/A' }}</td>
+                    <td class="small text-muted">{{ u.phone or 'N/A' }}</td>
+                    <td>
+                      <span class="badge {% if u.role == 'admin' %}bg-danger{% elif u.role == 'staff' %}bg-primary{% else %}bg-secondary{% endif %} text-uppercase">
+                        {{ u.role }}
+                      </span>
+                    </td>
+                    <td class="text-end">
+                      <form method="POST" action="{{ url_for('admin_change_role', user_id=u._id) }}" class="d-inline-flex gap-1">
+                        <select name="role" class="form-select form-select-sm" style="width: auto;">
+                          <option value="student" {% if u.role == 'student' %}selected{% endif %}>Student</option>
+                          <option value="staff" {% if u.role == 'staff' %}selected{% endif %}>Staff</option>
+                          <option value="security" {% if u.role == 'security' %}selected{% endif %}>Security</option>
+                          <option value="admin" {% if u.role == 'admin' %}selected{% endif %}>Admin</option>
+                        </select>
+                        <button type="submit" class="btn btn-sm btn-outline-primary">Update</button>
+                      </form>
+                    </td>
+                  </tr>
+                {% else %}
+                  <tr><td colspan="6" class="text-center py-4 text-muted">No registered users found.</td></tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Tab 3: All Claims Moderation -->
+        <div class="tab-pane fade p-3" id="claimsTabPane">
+          <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+              <thead class="table-light small">
+                <tr>
+                  <th>Item Title</th>
+                  <th>Claimant</th>
+                  <th>Claimant Contact</th>
+                  <th>Proof Details</th>
+                  <th>Status</th>
+                  <th>Submitted</th>
+                  <th class="text-end">Admin Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for clm in all_claims %}
+                  <tr>
+                    <td class="fw-bold">
+                      <a href="{{ url_for('item_detail', item_id=clm.item_id) }}" class="text-dark text-decoration-none">
+                        {{ clm.item_title }}
+                      </a>
+                    </td>
+                    <td>{{ clm.claimant_name }}</td>
+                    <td class="small">{{ clm.claimant_email }}<br>{{ clm.claimant_phone }}</td>
+                    <td class="small text-secondary" style="max-width: 300px;">{{ clm.proof_description }}</td>
+                    <td>
+                      <span class="badge {% if clm.status == 'Approved' %}bg-success{% elif clm.status == 'Rejected' %}bg-danger{% else %}bg-warning text-dark{% endif %}">
+                        {{ clm.status }}
+                      </span>
+                    </td>
+                    <td class="small text-muted">{{ clm.created_at|datetime_format }}</td>
+                    <td class="text-end">
+                      {% if clm.status == 'Pending' %}
+                        <form method="POST" action="{{ url_for('claim_action', claim_id=clm._id) }}" class="d-inline">
+                          <input type="hidden" name="action" value="Approved">
+                          <button type="submit" class="btn btn-sm btn-success rounded-pill px-2" title="Approve Claim">
+                            Approve
+                          </button>
+                        </form>
+                        <form method="POST" action="{{ url_for('claim_action', claim_id=clm._id) }}" class="d-inline">
+                          <input type="hidden" name="action" value="Rejected">
+                          <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-2" title="Reject Claim">
+                            Reject
+                          </button>
+                        </form>
+                      {% else %}
+                        <span class="text-muted small">Decided</span>
+                      {% endif %}
+                    </td>
+                  </tr>
+                {% else %}
+                  <tr><td colspan="7" class="text-center py-4 text-muted">No claims filed yet.</td></tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

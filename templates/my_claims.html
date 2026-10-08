@@ -1,0 +1,174 @@
+﻿{% extends "base.html" %}
+
+{% block title %}Claims & Verification | Campus Lost & Found{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  
+  <div class="mb-4">
+    <h1 class="h3 fw-bold mb-1"><i class="bi bi-shield-check text-success me-2"></i>Claims & Ownership Verification</h1>
+    <p class="text-muted small mb-0">Track claim requests you have made, or verify incoming claims on items you found</p>
+  </div>
+
+  <!-- Nav Tabs -->
+  <ul class="nav nav-pills mb-4" id="claimsTab" role="tablist">
+    <li class="nav-item" role="presentation">
+      <button class="nav-link active rounded-pill px-4" id="received-tab" data-bs-toggle="pill" data-bs-target="#received" type="button" role="tab">
+        <i class="bi bi-inbox me-1"></i> Claims on My Items 
+        <span class="badge bg-light text-dark ms-2">{{ claims_on_my_items|length }}</span>
+      </button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link rounded-pill px-4" id="sent-tab" data-bs-toggle="pill" data-bs-target="#sent" type="button" role="tab">
+        <i class="bi bi-send me-1"></i> Claims I Submitted 
+        <span class="badge bg-light text-dark ms-2">{{ claims_by_me|length }}</span>
+      </button>
+    </li>
+  </ul>
+
+  <div class="tab-content" id="claimsTabContent">
+    
+    <!-- Tab 1: Claims on My Items -->
+    <div class="tab-pane fade show active" id="received" role="tabpanel">
+      {% if claims_on_my_items %}
+        <div class="row g-4">
+          {% for claim in claims_on_my_items %}
+            <div class="col-lg-6">
+              <div class="card border-0 shadow-sm rounded-4 h-100 overflow-hidden bg-white">
+                <div class="card-header bg-light d-flex justify-content-between align-items-center p-3">
+                  <div class="d-flex align-items-center gap-2">
+                    <span class="badge {% if claim.item_type == 'Lost' %}badge-lost{% else %}badge-found{% endif %}">
+                      {{ claim.item_type }}
+                    </span>
+                    <a href="{{ url_for('item_detail', item_id=claim.item_id) }}" class="fw-bold text-dark text-decoration-none text-truncate" style="max-width: 250px;">
+                      {{ claim.item_title }}
+                    </a>
+                  </div>
+                  <span class="badge {% if claim.status == 'Approved' %}bg-success{% elif claim.status == 'Rejected' %}bg-danger{% else %}bg-warning text-dark{% endif %} px-2 py-1">
+                    {{ claim.status }}
+                  </span>
+                </div>
+
+                <div class="card-body p-4">
+                  <!-- Claimant Profile -->
+                  <div class="p-3 bg-light rounded-3 border mb-3">
+                    <div class="d-flex align-items-center justify-content-between mb-2">
+                      <div class="fw-bold text-dark"><i class="bi bi-person-circle me-1"></i>{{ claim.claimant_name }}</div>
+                      <small class="text-muted"><i class="bi bi-clock me-1"></i>{{ claim.created_at|datetime_format }}</small>
+                    </div>
+                    <div class="small text-secondary mb-1">
+                      <i class="bi bi-envelope me-1"></i>{{ claim.claimant_email }}
+                    </div>
+                    {% if claim.claimant_phone %}
+                      <div class="small text-secondary">
+                        <i class="bi bi-telephone me-1"></i>{{ claim.claimant_phone }}
+                      </div>
+                    {% endif %}
+                  </div>
+
+                  <!-- Proof Details -->
+                  <h6 class="fw-bold small text-uppercase text-muted mb-2">Claimant Proof of Ownership:</h6>
+                  <div class="p-3 bg-white border rounded-3 mb-3 text-secondary small" style="white-space: pre-line;">
+                    {{ claim.proof_description }}
+                  </div>
+
+                  <!-- Decision Actions -->
+                  {% if claim.status == 'Pending' %}
+                    <div class="d-flex gap-2 justify-content-end pt-2 border-top">
+                      <form method="POST" action="{{ url_for('claim_action', claim_id=claim._id) }}" class="d-inline">
+                        <input type="hidden" name="action" value="Rejected">
+                        <button type="submit" class="btn btn-outline-danger btn-sm rounded-pill px-3" onclick="return confirm('Reject this claim?');">
+                          <i class="bi bi-x-circle me-1"></i> Reject
+                        </button>
+                      </form>
+                      <form method="POST" action="{{ url_for('claim_action', claim_id=claim._id) }}" class="d-inline">
+                        <input type="hidden" name="action" value="Approved">
+                        <button type="submit" class="btn btn-success btn-sm rounded-pill px-4 fw-semibold" onclick="return confirm('Approve this claim? This will automatically mark the item as Returned.');">
+                          <i class="bi bi-check-circle me-1"></i> Approve & Return
+                        </button>
+                      </form>
+                    </div>
+                  {% else %}
+                    <div class="text-muted small text-end pt-2 border-top">
+                      Decision: <strong>{{ claim.status }}</strong>
+                    </div>
+                  {% endif %}
+
+                </div>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="card border-0 shadow-sm rounded-4 p-5 text-center bg-white">
+          <i class="bi bi-inbox fs-1 text-muted d-block mb-3"></i>
+          <h5 class="fw-bold">No Claims Received Yet</h5>
+          <p class="text-muted small mb-0">When students spot your reported items and claim them with proof, they will show up here.</p>
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- Tab 2: Claims I Have Submitted -->
+    <div class="tab-pane fade" id="sent" role="tabpanel">
+      {% if claims_by_me %}
+        <div class="row g-4">
+          {% for claim in claims_by_me %}
+            <div class="col-lg-6">
+              <div class="card border-0 shadow-sm rounded-4 h-100 overflow-hidden bg-white">
+                <div class="card-header bg-light d-flex justify-content-between align-items-center p-3">
+                  <div class="d-flex align-items-center gap-2">
+                    <span class="badge {% if claim.item_type == 'Lost' %}badge-lost{% else %}badge-found{% endif %}">
+                      {{ claim.item_type }}
+                    </span>
+                    <a href="{{ url_for('item_detail', item_id=claim.item_id) }}" class="fw-bold text-dark text-decoration-none text-truncate" style="max-width: 250px;">
+                      {{ claim.item_title }}
+                    </a>
+                  </div>
+                  <span class="badge {% if claim.status == 'Approved' %}bg-success{% elif claim.status == 'Rejected' %}bg-danger{% else %}bg-warning text-dark{% endif %} px-2 py-1">
+                    {{ claim.status }}
+                  </span>
+                </div>
+
+                <div class="card-body p-4">
+                  <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="text-muted small">Submitted on: {{ claim.created_at|datetime_format }}</span>
+                    <span class="text-secondary small">Poster: <strong>{{ claim.uploader_name }}</strong></span>
+                  </div>
+
+                  <h6 class="fw-bold small text-uppercase text-muted mb-2">My Submitted Proof:</h6>
+                  <div class="p-3 bg-light border rounded-3 mb-3 text-secondary small" style="white-space: pre-line;">
+                    {{ claim.proof_description }}
+                  </div>
+
+                  {% if claim.status == 'Approved' %}
+                    <div class="alert alert-success small mb-0">
+                      <i class="bi bi-check-circle-fill me-1"></i> Your claim has been <strong>Approved</strong>! Please contact the poster to collect your item.
+                    </div>
+                  {% elif claim.status == 'Rejected' %}
+                    <div class="alert alert-danger small mb-0">
+                      <i class="bi bi-x-circle-fill me-1"></i> Your claim was rejected by the poster.
+                    </div>
+                  {% else %}
+                    <div class="alert alert-warning small mb-0">
+                      <i class="bi bi-hourglass-split me-1"></i> Verification pending review by the poster.
+                    </div>
+                  {% endif %}
+
+                </div>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="card border-0 shadow-sm rounded-4 p-5 text-center bg-white">
+          <i class="bi bi-send-x fs-1 text-muted d-block mb-3"></i>
+          <h5 class="fw-bold">You Haven't Submitted Any Claims</h5>
+          <p class="text-muted small mb-0">If you spot your lost item in the directory, click "Claim Item" on its details page to submit a recovery request.</p>
+        </div>
+      {% endif %}
+    </div>
+
+  </div>
+
+</div>
+{% endblock %}

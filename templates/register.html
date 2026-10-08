@@ -1,0 +1,83 @@
+﻿{% extends "base.html" %}
+
+{% block title %}Register | Campus Lost & Found{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-md-7 col-lg-6">
+      <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+        <div class="card-header bg-primary text-white p-4 text-center">
+          <div class="fs-1 mb-2"><i class="bi bi-person-plus-fill"></i></div>
+          <h3 class="fw-bold mb-1">Create Account</h3>
+          <p class="mb-0 small text-white-50">Join your campus community to post & recover items</p>
+        </div>
+        <div class="card-body p-4 p-md-5">
+          <form method="POST" action="{{ url_for('register') }}">
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Username / Full Name *</label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-person"></i></span>
+                <input type="text" name="username" class="form-control" placeholder="e.g. rahul_sharma" required>
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label fw-semibold">College Email Address *</label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+                <input type="email" name="email" class="form-control" placeholder="name@college.edu" required>
+              </div>
+              <div class="form-text small">Use your official or regular email to receive notifications.</div>
+            </div>
+
+            <div class="row g-2 mb-3">
+              <div class="col-md-6">
+                <label class="form-label fw-semibold">Campus Role *</label>
+                <select name="role" class="form-select" required>
+                  <option value="student" selected>Student</option>
+                  <option value="staff">Faculty / Staff</option>
+                  <option value="security">Security / Reception</option>
+                  <option value="admin">Administrator</option>
+                </select>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label fw-semibold">Department / Class</label>
+                <input type="text" name="department" class="form-control" placeholder="e.g. CSE - 3rd Year">
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Contact Phone Number</label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-telephone"></i></span>
+                <input type="tel" name="phone" class="form-control" placeholder="e.g. +91 9876543210">
+              </div>
+            </div>
+
+            <div class="row g-2 mb-4">
+              <div class="col-md-6">
+                <label class="form-label fw-semibold">Password *</label>
+                <input type="password" name="password" class="form-control" placeholder="At least 6 chars" required minlength="6">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label fw-semibold">Confirm Password *</label>
+                <input type="password" name="confirm_password" class="form-control" placeholder="Repeat password" required>
+              </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100 py-2 rounded-pill fw-semibold shadow-sm">
+              <i class="bi bi-arrow-right-circle me-1"></i> Register Account
+            </button>
+          </form>
+
+          <div class="text-center mt-4 pt-3 border-top">
+            <span class="text-muted small">Already registered? </span>
+            <a href="{{ url_for('login') }}" class="fw-semibold text-primary">Login here</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

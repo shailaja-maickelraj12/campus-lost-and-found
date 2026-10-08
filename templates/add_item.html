@@ -1,0 +1,196 @@
+﻿{% extends "base.html" %}
+
+{% block title %}Report Lost or Found Item | Campus Lost & Found{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-9">
+      
+      <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4">
+        <div class="card-header bg-primary text-white p-4">
+          <div class="d-flex align-items-center justify-content-between">
+            <div>
+              <h3 class="fw-bold mb-1"><i class="bi bi-file-earmark-plus me-2"></i>Report Campus Item</h3>
+              <p class="mb-0 small text-white-50">Upload item details along with photo or short video proof</p>
+            </div>
+            <span class="badge bg-light text-primary px-3 py-2 rounded-pill fw-semibold">Step 1 of 1</span>
+          </div>
+        </div>
+
+        <div class="card-body p-4 p-md-5">
+          <form method="POST" action="{{ url_for('add_item') }}" enctype="multipart/form-data">
+            
+            <!-- Item Type Selection (Lost vs Found) -->
+            <div class="mb-4">
+              <label class="form-label fw-bold d-block mb-2">Report Type *</label>
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <input type="radio" class="btn-check" name="type" id="typeFound" value="Found" checked>
+                  <label class="btn btn-outline-success w-100 p-3 text-start rounded-3" for="typeFound">
+                    <div class="d-flex align-items-center">
+                      <i class="bi bi-check-circle-fill fs-3 me-3 text-success"></i>
+                      <div>
+                        <div class="fw-bold fs-6">I FOUND an Item</div>
+                        <div class="small text-muted">I picked up something belonging to someone else</div>
+                      </div>
+                    </div>
+                  </label>
+                </div>
+
+                <div class="col-md-6">
+                  <input type="radio" class="btn-check" name="type" id="typeLost" value="Lost">
+                  <label class="btn btn-outline-danger w-100 p-3 text-start rounded-3" for="typeLost">
+                    <div class="d-flex align-items-center">
+                      <i class="bi bi-exclamation-triangle-fill fs-3 me-3 text-danger"></i>
+                      <div>
+                        <div class="fw-bold fs-6">I LOST an Item</div>
+                        <div class="small text-muted">I misplaced my belongings on campus</div>
+                      </div>
+                    </div>
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <!-- Basic Details -->
+            <div class="row g-3 mb-3">
+              <div class="col-md-8">
+                <label class="form-label fw-semibold">Item Name / Title *</label>
+                <input type="text" name="title" class="form-control" placeholder="e.g. Casio fx-991EX Calculator / Black Leather Wallet / Blue Umbrella" required>
+              </div>
+
+              <div class="col-md-4">
+                <label class="form-label fw-semibold">Category *</label>
+                <select name="category" id="categorySelect" class="form-select" required>
+                  <option value="" disabled selected>Select category...</option>
+                  {% for cat in categories %}
+                    <option value="{{ cat }}">{{ cat }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+            </div>
+
+            <!-- Dynamic Fields (NoSQL Flexibility Showcase) -->
+            <div class="p-3 bg-light rounded-3 border mb-3">
+              <h6 class="fw-bold text-secondary mb-3 small text-uppercase">
+                <i class="bi bi-sliders me-1"></i> Flexible Item Attributes (MongoDB Document Features)
+              </h6>
+              
+              <div class="row g-3">
+                <div class="col-md-6" id="brandGroup">
+                  <label class="form-label small fw-semibold text-muted">Brand / Manufacturer / Model</label>
+                  <input type="text" name="brand" class="form-control form-control-sm" placeholder="e.g. Casio, HP, Apple, Wildcraft">
+                </div>
+
+                <div class="col-md-6">
+                  <label class="form-label small fw-semibold text-muted">Color / Pattern</label>
+                  <input type="text" name="color" class="form-control form-control-sm" placeholder="e.g. Matte Black, Navy Blue, Silver">
+                </div>
+
+                <div class="col-md-6 d-none" id="idNumberGroup">
+                  <label class="form-label small fw-semibold text-danger">College ID / Registration Number</label>
+                  <input type="text" name="id_number" class="form-control form-control-sm" placeholder="e.g. 21BCE1042">
+                </div>
+
+                <div class="col-md-6 d-none" id="keyTypeGroup">
+                  <label class="form-label small fw-semibold text-muted">Key Specification</label>
+                  <input type="text" name="key_type" class="form-control form-control-sm" placeholder="e.g. Honda Activa Key with red ribbon">
+                </div>
+              </div>
+            </div>
+
+            <!-- Location & Date -->
+            <div class="row g-3 mb-3">
+              <div class="col-md-7">
+                <label class="form-label fw-semibold">Campus Location *</label>
+                <input type="text" name="location" list="locationOptions" class="form-control" placeholder="Select or type location..." required>
+                <datalist id="locationOptions">
+                  {% for loc in locations %}
+                    <option value="{{ loc }}">
+                  {% endfor %}
+                </datalist>
+              </div>
+
+              <div class="col-md-5">
+                <label class="form-label fw-semibold">Date Observed / Found *</label>
+                <input type="date" name="date_observed" class="form-control" value="{{ now }}">
+              </div>
+            </div>
+
+            <!-- Description -->
+            <div class="mb-4">
+              <label class="form-label fw-semibold">Detailed Description</label>
+              <textarea name="description" rows="3" class="form-control" placeholder="Mention any distinct scratches, stickers, condition, where exactly it was found, or who to contact..."></textarea>
+            </div>
+
+            <!-- Media Upload Section (Core Feature) -->
+            <div class="card border-primary-subtle bg-primary-subtle bg-opacity-10 rounded-3 p-3 mb-4">
+              <h5 class="fw-bold mb-2 text-primary">
+                <i class="bi bi-camera-reels-fill me-2"></i>Media Attachments (Photo & Video Proof)
+              </h5>
+              <p class="small text-muted mb-3">
+                Uploading photo or video greatly increases the speed and accuracy of returning lost items.
+              </p>
+
+              <div class="row g-3">
+                <!-- Image Upload -->
+                <div class="col-md-6">
+                  <label class="form-label fw-semibold small">
+                    <i class="bi bi-image me-1"></i> Upload Photo (JPG, PNG, WEBP)
+                  </label>
+                  <input type="file" name="image" id="imageInput" class="form-control" accept="image/*">
+                  <div id="imagePreviewContainer" class="d-none mt-2 text-center">
+                    <img id="imagePreview" src="" alt="Photo Preview" class="preview-thumbnail">
+                    <div class="small text-success mt-1"><i class="bi bi-check-circle"></i> Ready to upload</div>
+                  </div>
+                </div>
+
+                <!-- Video Upload -->
+                <div class="col-md-6">
+                  <label class="form-label fw-semibold small">
+                    <i class="bi bi-play-btn me-1"></i> Upload Short Video (MP4, WEBM - Max 32MB)
+                  </label>
+                  <input type="file" name="video" id="videoInput" class="form-control" accept="video/mp4,video/webm">
+                  <div id="videoPreviewContainer" class="d-none mt-2 text-center">
+                    <video id="videoPreview" class="preview-thumbnail" controls muted></video>
+                    <div class="small text-success mt-1"><i class="bi bi-check-circle"></i> Video clip selected</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Contact Preference -->
+            <div class="mb-4">
+              <label class="form-label fw-semibold">Contact / Handover Instructions</label>
+              <input type="text" name="contact_info" class="form-control" placeholder="e.g. Deposited at Security Desk Block B / Call my phone / Email me" value="{{ current_user.email if current_user else '' }}">
+            </div>
+
+            <!-- Submit -->
+            <div class="d-flex justify-content-end gap-2">
+              <a href="{{ url_for('index') }}" class="btn btn-outline-secondary px-4 rounded-pill">Cancel</a>
+              <button type="submit" class="btn btn-primary px-5 rounded-pill fw-semibold shadow-sm">
+                <i class="bi bi-cloud-arrow-up-fill me-1"></i> Submit Report
+              </button>
+            </div>
+
+          </form>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  // Set default date to today
+  document.addEventListener("DOMContentLoaded", function() {
+    const dateInput = document.querySelector('input[name="date_observed"]');
+    if (dateInput && !dateInput.value) {
+      dateInput.value = new Date().toISOString().split('T')[0];
+    }
+  });
+</script>
+{% endblock %}

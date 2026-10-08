@@ -1,0 +1,9 @@
+﻿.env
+__pycache__/
+*.pyc
+*.pyo
+instance/
+.pytest_cache/
+static/uploads/images/*
+!static/uploads/images/sample_*.svg
+static/uploads/videos/*

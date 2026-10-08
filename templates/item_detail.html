@@ -1,0 +1,330 @@
+{% extends "base.html" %}
+
+{% block title %}{{ item.title }} | Campus Lost & Found{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  
+  <!-- Breadcrumb -->
+  <nav aria-label="breadcrumb" class="mb-4">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="{{ url_for('index') }}" class="text-decoration-none">Home</a></li>
+      <li class="breadcrumb-item"><a href="{{ url_for('items') }}" class="text-decoration-none">Items</a></li>
+      <li class="breadcrumb-item active" aria-current="page">{{ item.title }}</li>
+    </ol>
+  </nav>
+
+  <div class="row g-4">
+    
+    <!-- Left Column: Media Showcase (Images & Video) -->
+    <div class="col-lg-7">
+      <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4">
+        <div class="card-header bg-dark text-white p-3 d-flex justify-content-between align-items-center">
+          <span class="badge {% if item.type == 'Lost' %}badge-lost{% else %}badge-found{% endif %} fs-6 px-3 py-1">
+            {{ item.type }} ITEM
+          </span>
+          <span class="badge {% if item.status == 'Available' %}bg-success{% elif item.status == 'Returned' %}bg-secondary{% else %}bg-warning text-dark{% endif %} fs-6 px-3 py-1">
+            Status: {{ item.status }}
+          </span>
+        </div>
+
+        <div class="card-body p-0 bg-dark text-center">
+          
+          <!-- Image Display -->
+          {% if item.image_path %}
+            <div class="p-3">
+              <img src="{{ url_for('static', filename=item.image_path) }}" alt="{{ item.title }}" class="img-fluid rounded-3 detail-main-img">
+            </div>
+          {% endif %}
+
+          <!-- Video Display -->
+          {% if item.video_path %}
+            <div class="p-3 {% if item.image_path %}border-top border-secondary{% endif %}">
+              <div class="d-flex align-items-center justify-content-between text-white-50 px-2 mb-2 small">
+                <span><i class="bi bi-camera-video me-1"></i> Recorded Video Footage</span>
+                <span>Click play to watch</span>
+              </div>
+              <video controls playsinline class="detail-video-player">
+                <source src="{{ url_for('static', filename=item.video_path) }}" type="video/mp4">
+                Your browser does not support the video tag.
+              </video>
+            </div>
+          {% endif %}
+
+          <!-- If neither exists -->
+          {% if not item.image_path and not item.video_path %}
+            <div class="py-5 text-white-50 text-center">
+              <i class="bi bi-camera-slash fs-1 d-block mb-2"></i>
+              <span>No image or video was attached to this report.</span>
+            </div>
+          {% endif %}
+
+        </div>
+      </div>
+
+      <!-- Description Block -->
+      <div class="card border-0 shadow-sm rounded-4 p-4 mb-4 bg-white">
+        <h5 class="fw-bold mb-3"><i class="bi bi-card-text text-primary me-2"></i>Detailed Description</h5>
+        <p class="text-secondary mb-0" style="white-space: pre-line;">
+          {{ item.description if item.description else 'No extra description provided by the uploader.' }}
+        </p>
+      </div>
+
+      <!-- Owner Claims Management Area -->
+      {% if is_owner and claims %}
+        <div class="card border-0 shadow-sm rounded-4 p-4 mb-4 bg-white" id="claimsSection">
+          <h5 class="fw-bold mb-3 text-dark">
+            <i class="bi bi-shield-check text-success me-2"></i>Claims Received on this Item ({{ claims|length }})
+          </h5>
+
+          <div class="list-group list-group-flush">
+            {% for cl in claims %}
+              <div class="list-group-item px-0 py-3">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                  <div>
+                    <strong class="text-dark">{{ cl.claimant_name }}</strong> 
+                    <span class="text-muted small">({{ cl.claimant_email }}{% if cl.claimant_phone %} &bull; {{ cl.claimant_phone }}{% endif %})</span>
+                  </div>
+                  <span class="badge {% if cl.status == 'Approved' %}bg-success{% elif cl.status == 'Rejected' %}bg-danger{% else %}bg-warning text-dark{% endif %}">
+                    {{ cl.status }}
+                  </span>
+                </div>
+
+                <div class="p-3 bg-light rounded-3 text-secondary small mb-2" style="white-space: pre-line;">
+                  <strong>Submitted Proof:</strong><br>
+                  {{ cl.proof_description }}
+                </div>
+
+                {% if cl.status == 'Pending' %}
+                  <div class="d-flex gap-2 justify-content-end">
+                    <form method="POST" action="{{ url_for('claim_action', claim_id=cl._id) }}" class="d-inline">
+                      <input type="hidden" name="action" value="Rejected">
+                      <button type="submit" class="btn btn-outline-danger btn-sm rounded-pill px-3">
+                        Reject Claim
+                      </button>
+                    </form>
+                    <form method="POST" action="{{ url_for('claim_action', claim_id=cl._id) }}" class="d-inline">
+                      <input type="hidden" name="action" value="Approved">
+                      <button type="submit" class="btn btn-success btn-sm rounded-pill px-3">
+                        Approve & Mark Returned
+                      </button>
+                    </form>
+                  </div>
+                {% endif %}
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+      {% endif %}
+
+    </div>
+
+    <!-- Right Column: Meta details, Dynamic Attributes & Actions -->
+    <div class="col-lg-5">
+      
+      <!-- Main Info Card -->
+      <div class="card border-0 shadow-sm rounded-4 p-4 mb-4 bg-white">
+        <div class="d-flex justify-content-between align-items-start mb-2">
+          <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-3 py-1">
+            {{ item.category }}
+          </span>
+          <small class="text-muted"><i class="bi bi-clock me-1"></i>Reported: {{ item.created_at|datetime_format }}</small>
+        </div>
+
+        <h2 class="fw-bold mb-3 text-dark">{{ item.title }}</h2>
+
+        <div class="list-group list-group-flush mb-4">
+          <div class="list-group-item px-0 py-2 d-flex justify-content-between">
+            <span class="text-muted"><i class="bi bi-geo-alt-fill text-danger me-2"></i>Location</span>
+            <span class="fw-semibold text-end">{{ item.location }}</span>
+          </div>
+
+          <div class="list-group-item px-0 py-2 d-flex justify-content-between">
+            <span class="text-muted"><i class="bi bi-calendar-event me-2 text-primary"></i>Date Observed</span>
+            <span class="fw-semibold">{{ item.date_observed }}</span>
+          </div>
+
+          <div class="list-group-item px-0 py-2 d-flex justify-content-between">
+            <span class="text-muted"><i class="bi bi-person-circle me-2 text-secondary"></i>Posted By</span>
+            <span class="fw-semibold">{{ item.uploader_name }} ({{ item.uploader_role|capitalize if item.uploader_role else 'Student' }})</span>
+          </div>
+
+          <div class="list-group-item px-0 py-2 d-flex justify-content-between">
+            <span class="text-muted"><i class="bi bi-envelope-at me-2 text-info"></i>Contact Info</span>
+            <span class="fw-semibold">{{ item.contact_info or item.uploader_email }}</span>
+          </div>
+        </div>
+
+        <!-- Dynamic MongoDB document fields -->
+        {% if item.custom_fields and item.custom_fields|length > 0 %}
+          <div class="p-3 bg-light rounded-3 border mb-4">
+            <h6 class="fw-bold small text-uppercase text-secondary mb-2">
+              <i class="bi bi-info-circle me-1"></i> Specific Identifiers (NoSQL Attributes)
+            </h6>
+            <div class="row g-2 small">
+              {% if item.custom_fields.brand %}
+                <div class="col-6"><strong>Brand/Model:</strong> {{ item.custom_fields.brand }}</div>
+              {% endif %}
+              {% if item.custom_fields.color %}
+                <div class="col-6"><strong>Color:</strong> {{ item.custom_fields.color }}</div>
+              {% endif %}
+              {% if item.custom_fields.id_number %}
+                <div class="col-12 text-danger"><strong>College ID Number:</strong> {{ item.custom_fields.id_number }}</div>
+              {% endif %}
+              {% if item.custom_fields.key_type %}
+                <div class="col-12"><strong>Key Type:</strong> {{ item.custom_fields.key_type }}</div>
+              {% endif %}
+            </div>
+          </div>
+        {% endif %}
+
+        <!-- Actions Area (Owner Controls vs Claim CTA) -->
+        <div class="border-top pt-3">
+          
+          {% if is_owner %}
+            <!-- Owner Controls -->
+            <div class="alert alert-info small mb-3">
+              <i class="bi bi-person-badge-fill me-1"></i> You are the author of this listing.
+            </div>
+
+            <div class="d-flex flex-column gap-2">
+              <a href="{{ url_for('edit_item', item_id=item._id) }}" class="btn btn-warning rounded-pill fw-semibold shadow-sm">
+                <i class="bi bi-pencil-square me-1"></i> Edit Listing / Replace Media
+              </a>
+
+              <form method="POST" action="{{ url_for('toggle_status', item_id=item._id) }}">
+                {% if item.status == 'Available' %}
+                  <button type="submit" class="btn btn-outline-success rounded-pill w-100">
+                    <i class="bi bi-check2-circle me-1"></i> Mark as Returned / Resolved
+                  </button>
+                {% else %}
+                  <button type="submit" class="btn btn-outline-secondary rounded-pill w-100">
+                    <i class="bi bi-arrow-counterclockwise me-1"></i> Reopen Listing
+                  </button>
+                {% endif %}
+              </form>
+
+              <form method="POST" action="{{ url_for('delete_item', item_id=item._id) }}" onsubmit="return confirm('Permanently delete this listing and its uploaded files?');">
+                <button type="submit" class="btn btn-outline-danger rounded-pill w-100">
+                  <i class="bi bi-trash me-1"></i> Delete Post
+                </button>
+              </form>
+            </div>
+
+          {% else %}
+            <!-- Non-owner (Student / Staff Claim Flow) -->
+            {% if item.status == 'Returned' %}
+              <div class="alert alert-secondary text-center mb-0">
+                <i class="bi bi-check-circle-fill me-1 text-success"></i> This item has been marked as <strong>Returned / Resolved</strong>.
+              </div>
+            {% elif user_claim %}
+              <div class="card border-primary p-3 bg-primary-subtle bg-opacity-25 rounded-3 text-center">
+                <h6 class="fw-bold text-primary mb-1"><i class="bi bi-clock-history me-1"></i> Claim Submitted</h6>
+                <div class="small text-muted mb-2">Status: <strong>{{ user_claim.status }}</strong></div>
+                <a href="{{ url_for('my_claims') }}" class="btn btn-sm btn-primary rounded-pill">
+                  View in My Claims
+                </a>
+              </div>
+            {% elif current_user %}
+              <div class="d-grid gap-2">
+                <button class="btn btn-success btn-lg rounded-pill fw-bold shadow-sm" type="button" data-bs-toggle="modal" data-bs-target="#claimModal">
+                  <i class="bi bi-hand-index-thumb me-2"></i> {% if item.type == 'Found' %}This Belongs to Me (Claim Item){% else %}I Found This Item (Notify Owner){% endif %}
+                </button>
+              </div>
+            {% else %}
+              <div class="d-grid gap-2">
+                <a href="{{ url_for('login', next=request.url) }}" class="btn btn-primary btn-lg rounded-pill fw-bold shadow-sm">
+                  <i class="bi bi-box-arrow-in-right me-2"></i> Log In to Submit a Claim
+                </a>
+              </div>
+            {% endif %}
+
+          {% endif %}
+
+        </div>
+
+      </div>
+
+      <!-- Quick Tips Card -->
+      <div class="card border-0 bg-primary-subtle bg-opacity-25 rounded-4 p-3 border border-primary-subtle">
+        <h6 class="fw-bold text-primary mb-2 small"><i class="bi bi-shield-shaded me-1"></i> Campus Verification Rule</h6>
+        <p class="small text-muted mb-0">
+          When claiming high-value items (smartphones, laptops, calculators, ID cards), the campus security desk or finder will verify matching proof (e.g. wallpaper, passwords, serial number, or student ID).
+        </p>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Related Items -->
+  {% if related_items %}
+    <div class="mt-5 pt-4 border-top">
+      <h4 class="fw-bold mb-3">Related Items in {{ item.category }}</h4>
+      <div class="row g-3">
+        {% for rel in related_items %}
+          <div class="col-md-4">
+            <div class="card p-3 rounded-3 shadow-sm border h-100 bg-white">
+              <div class="d-flex align-items-center gap-3">
+                {% if rel.image_path %}
+                  <img src="{{ url_for('static', filename=rel.image_path) }}" alt="{{ rel.title }}" style="width: 70px; height: 70px; object-fit: cover;" class="rounded-3">
+                {% else %}
+                  <div class="bg-light rounded-3 d-flex align-items-center justify-content-center text-muted" style="width: 70px; height: 70px;">
+                    <i class="bi bi-box"></i>
+                  </div>
+                {% endif %}
+                <div class="overflow-hidden">
+                  <span class="badge {% if rel.type == 'Lost' %}badge-lost{% else %}badge-found{% endif %} small mb-1">{{ rel.type }}</span>
+                  <h6 class="fw-bold text-truncate mb-1">{{ rel.title }}</h6>
+                  <small class="text-muted d-block text-truncate"><i class="bi bi-geo-alt me-1"></i>{{ rel.location }}</small>
+                  <a href="{{ url_for('item_detail', item_id=rel._id) }}" class="small text-primary fw-semibold stretched-link">View Item</a>
+                </div>
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  {% endif %}
+
+</div>
+
+<!-- Claim Submission Modal -->
+{% if current_user and not is_owner and item.status != 'Returned' and not user_claim %}
+<div class="modal fade" id="claimModal" tabindex="-1" aria-labelledby="claimModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content rounded-4 border-0 shadow">
+      <div class="modal-header bg-dark text-white">
+        <h5 class="modal-title fw-bold" id="claimModalLabel">
+          <i class="bi bi-shield-check me-2 text-success"></i>Submit Claim & Proof
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form method="POST" action="{{ url_for('submit_claim', item_id=item._id) }}">
+        <div class="modal-body p-4">
+          <p class="small text-muted mb-3">
+            Please provide specific details proving your ownership. Only you and the post author will see this verification evidence.
+          </p>
+
+          <div class="mb-3">
+            <label class="form-label fw-semibold small">Contact Phone Number</label>
+            <input type="tel" name="claimant_phone" class="form-control" placeholder="e.g. +91 9876543210" required>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-semibold small">Proof of Ownership / Distinguishing Marks *</label>
+            <textarea name="proof_description" rows="4" class="form-control" placeholder="Describe unique features: scratches, stickers, screen lock, bill details, serial numbers, keychain charms, or student ID..." required></textarea>
+            <div class="form-text small">Detailed proof helps the finder quickly verify you as the authentic owner.</div>
+          </div>
+        </div>
+        <div class="modal-footer bg-light">
+          <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-success rounded-pill px-4 fw-semibold">
+            <i class="bi bi-send-fill me-1"></i> Submit Claim
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endif %}
+{% endblock %}
