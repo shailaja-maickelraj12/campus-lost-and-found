@@ -1,4 +1,4 @@
-﻿import os
+import os
 import logging
 from datetime import datetime, timezone
 import dns.resolver
@@ -11,11 +11,13 @@ from config import Config
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("LostFoundDB")
 
-# Configure public DNS resolvers (Google & Cloudflare) to ensure MongoDB Atlas SRV records resolve seamlessly
+# Configure DNS resolvers: preserve local system nameservers first, add public fallbacks as backup
 try:
-    custom_resolver = dns.resolver.Resolver()
-    custom_resolver.nameservers = ['8.8.8.8', '1.1.1.1', '8.8.4.4']
-    dns.resolver.default_resolver = custom_resolver
+    system_resolver = dns.resolver.Resolver()
+    for ns in ['8.8.8.8', '1.1.1.1', '8.8.4.4']:
+        if ns not in system_resolver.nameservers:
+            system_resolver.nameservers.append(ns)
+    dns.resolver.default_resolver = system_resolver
 except Exception as dns_err:
     logger.debug("DNS configuration notice: %s", dns_err)
 
@@ -30,7 +32,7 @@ def init_db():
     try:
         masked_uri = Config.MONGO_URI.split('@')[-1] if '@' in Config.MONGO_URI else Config.MONGO_URI
         logger.info("[Database] Connecting to MongoDB instance (%s)...", masked_uri)
-        real_client = MongoClient(Config.MONGO_URI, serverSelectionTimeoutMS=8000)
+        real_client = MongoClient(Config.MONGO_URI, serverSelectionTimeoutMS=15000, connectTimeoutMS=15000)
         real_client.admin.command('ping')
         _db_instance = real_client[Config.DB_NAME]
         _is_mock = False
