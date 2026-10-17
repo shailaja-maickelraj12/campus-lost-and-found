@@ -269,7 +269,7 @@ A pre-configured administrator account is automatically initialized upon databas
 | **Administrator** | `admin@campus.edu` | `admin123` | Full access to Admin Dashboard, all posts, and all claims |
 | **Student** | *(Register via UI)* | *(User defined)* | Post items, claim items, manage personal reports |
 
-*(Note: The login page includes a one-click **"Fill Admin Credentials"** button for quick demonstration).*
+*(Note: Admin credentials can be kept confidential in production).*
 
 ---
 

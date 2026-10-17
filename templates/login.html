@@ -1,4 +1,4 @@
-﻿{% extends "base.html" %}
+{% extends "base.html" %}
 
 {% block title %}Login | Campus Lost & Found{% endblock %}
 
@@ -42,32 +42,7 @@
         </div>
       </div>
 
-      <!-- Quick Admin Credentials Card -->
-      <div class="card border-0 bg-light shadow-sm rounded-4 p-3 text-center">
-        <div class="d-flex align-items-center justify-content-between">
-          <div class="text-start">
-            <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-2 py-1 small fw-bold mb-1">
-              <i class="bi bi-shield-lock me-1"></i> Default Admin
-            </span>
-            <div class="small fw-semibold text-dark">admin@campus.edu</div>
-            <div class="small text-muted">Password: <code>admin123</code></div>
-          </div>
-          <button type="button" class="btn btn-outline-danger btn-sm rounded-pill px-3" onclick="fillAdmin()">
-            Autofill Admin
-          </button>
-        </div>
-      </div>
-
     </div>
   </div>
 </div>
-{% endblock %}
-
-{% block scripts %}
-<script>
-  function fillAdmin() {
-    document.getElementById('loginIdInput').value = 'admin@campus.edu';
-    document.getElementById('passwordInput').value = 'admin123';
-  }
-</script>
 {% endblock %}
